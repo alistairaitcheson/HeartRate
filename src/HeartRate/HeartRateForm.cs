@@ -256,6 +256,11 @@ public partial class HeartRateForm : Form
 
                 UpdateUICore();
                 Invalidate();
+
+                // Here is where I put the Magic box stuff
+                string pathToMagicBox = System.IO.File.ReadAllText("pathToMagicBox.txt").Trim();
+                string fileName = "heart_" + new Random().Next(10000, 99999).ToString() + ".amb";
+                System.IO.File.WriteAllText(pathToMagicBox + "\\recv\\" + fileName, bpm.ToString() + "H");
             }
         }));
     }
