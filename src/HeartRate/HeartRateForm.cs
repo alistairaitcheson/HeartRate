@@ -50,8 +50,12 @@ namespace HeartRate
         // read these from the data!
         int highHeartRate = 100;
         int lowHeartRate = 50;
-        int highSonicSpeed = 0xEFFF;
-        int lowSonicSpeed = 0x0000;
+        int highSonicSpeed = 0x0600;
+        int lowSonicSpeed = 0x0600;
+        int highSonicAccel = 0x000C;
+        int lowSonicAccel = 0x000C;
+        bool shouldShowBpm = false;
+        bool shouldShowValues = false;
 
         public HeartRateForm() : this(
             Environment.CommandLine.Contains("--test")
@@ -270,29 +274,50 @@ namespace HeartRate
 
                     try
                     {
+                        shouldShowBpm = false;
+                        shouldShowValues = false;
+
                         sourceDataStr = System.IO.File.ReadAllText("monitorValues.txt").Trim();
                         string[] lines = sourceDataStr.Split(new string[] { "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries);
                         foreach (string line in lines)
                         {
                             if (line.StartsWith("pathToMagicBox:"))
                             {
-                                pathToMagicBox = line.Substring("pathToMagicBox:".Length);
+                                pathToMagicBox = line.Substring("pathToMagicBox:".Length).Trim();
                             }
                             if (line.StartsWith("highHeartRate:"))
                             {
-                                highHeartRate = int.Parse(line.Substring("highHeartRate:".Length));
+                                highHeartRate = int.Parse(line.Substring("highHeartRate:".Length).Trim());
                             }
                             if (line.StartsWith("lowHeartRate:"))
                             {
-                                lowHeartRate = int.Parse(line.Substring("lowHeartRate:".Length));
+                                lowHeartRate = int.Parse(line.Substring("lowHeartRate:".Length).Trim());
                             }
+
                             if (line.StartsWith("highSonicSpeed:"))
                             {
-                                highSonicSpeed = int.Parse(line.Substring("highSonicSpeed:".Length), System.Globalization.NumberStyles.HexNumber);
+                                highSonicSpeed = int.Parse(line.Substring("highSonicSpeed:".Length).Trim(), System.Globalization.NumberStyles.HexNumber);
                             }
                             if (line.StartsWith("lowSonicSpeed:"))
                             {
-                                lowSonicSpeed = int.Parse(line.Substring("lowSonicSpeed:".Length), System.Globalization.NumberStyles.HexNumber);
+                                lowSonicSpeed = int.Parse(line.Substring("lowSonicSpeed:".Length).Trim(), System.Globalization.NumberStyles.HexNumber);
+                            }
+
+                            if (line.StartsWith("highSonicAccel:"))
+                            {
+                                highSonicAccel = int.Parse(line.Substring("highSonicAccel:".Length).Trim(), System.Globalization.NumberStyles.HexNumber);
+                            }
+                            if (line.StartsWith("lowSonicAccel:"))
+                            {
+                                lowSonicAccel = int.Parse(line.Substring("lowSonicAccel:".Length).Trim(), System.Globalization.NumberStyles.HexNumber);
+                            }
+                            if (line.Trim() == "showBpm")
+                            {
+                                shouldShowBpm = true;
+                            }
+                            if (line.Trim() == "showValues")
+                            {
+                                shouldShowValues = true;
                             }
                         }
 
@@ -300,18 +325,35 @@ namespace HeartRate
                             "highHeartRate: " + highHeartRate +
                             ", lowHeartRate: " + lowHeartRate +
                             ", highSonicSpeed: " + highSonicSpeed +
-                            ", lowSonicSpeed: " + lowSonicSpeed);
-                        System.Console.WriteLine(
-                            "bpm: " + bpm);
+                            ", lowSonicSpeed: " + lowSonicSpeed +
+                            ", highSonicAccel: " + highSonicAccel +
+                            ", lowSonicAccel: " + lowSonicAccel);
+
                         float relativeRate = ((float)bpm - (float)lowHeartRate) / ((float)highHeartRate - (float)lowHeartRate);
                         float sonicSpeed = ((1 - relativeRate) * lowSonicSpeed) + (relativeRate * highSonicSpeed);
                         int intSonicSpeed = (int)Math.Floor(sonicSpeed);
                         intSonicSpeed = Math.Max(0, intSonicSpeed);
                         intSonicSpeed = Math.Min(0xEFFF, intSonicSpeed);
 
+                        float sonicAccel = ((1 - relativeRate) * lowSonicAccel) + (relativeRate * highSonicAccel);
+                        int intSonicAccel = (int)Math.Floor(sonicAccel);
+                        intSonicAccel = Math.Max(0, intSonicAccel);
+                        intSonicAccel = Math.Min(0xEFFF, intSonicAccel);
+
+                        int intShouldShowBpm = shouldShowBpm ? 1 : 0;
+                        int intShouldShowValues = shouldShowValues ? 1 : 0;
+
+                        System.Console.WriteLine(
+                                "bpm: " + bpm + ", speed: " + intSonicSpeed.ToString("X") + ", accel: " + intSonicAccel.ToString("X") + ", showBPM: " + intShouldShowBpm + ", showVal: " + intShouldShowValues);
                         // Here is where I put the Magic box stuff
                         string fileName = "heart_" + new Random().Next(10000, 99999).ToString() + ".amb";
-                        System.IO.File.WriteAllText(pathToMagicBox + "\\recv\\" + fileName, bpm.ToString() + "H" + intSonicSpeed + "J");
+                        string message = bpm.ToString() + "H" + intSonicSpeed + "J" + intSonicAccel + "j";
+                        string secondFileName = "heart_" + new Random().Next(10000, 99999).ToString() + ".amb";
+                        string secondMessage = intShouldShowBpm + "K" + intShouldShowValues + "k";
+                        System.Console.WriteLine(message);
+                        System.Console.WriteLine(secondMessage);
+                        System.IO.File.WriteAllText(pathToMagicBox + "\\recv\\" + fileName, message);
+                        System.IO.File.WriteAllText(pathToMagicBox + "\\recv\\" + secondFileName, secondMessage);
                         if (System.IO.File.Exists("errorLog.txt"))
                         {
                             System.IO.File.Delete("errorLog.txt");

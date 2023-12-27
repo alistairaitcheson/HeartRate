@@ -1,0 +1,24 @@
+// When your heart BPM is at "highHeartRate" Sonic will run at speed "highSonicSpeed"
+// When your heart BPM is at "lowHeartRate" BPM Sonic will run at speed "lowSonicSpeed"
+// If your BPM is outside these bounds, the computer will extrapolate linearly, like a straight line graph
+highHeartRate:100
+lowHeartRate:75
+
+// this is what Sonic's top running speed will be, as a HEX number
+// 0600 is Sonic's normal top running speed
+highSonicSpeed:0F00
+lowSonicSpeed:0600
+
+// this is how fast Sonic will accelerate, as a HEX number
+// 000C is Sonic's normal rate of acceleration
+highSonicAccel:0018
+lowSonicAccel:000C
+
+// this is the path to the _magicbox folder on your computer
+pathToMagicBox:C:\Users\agaitcheson\AppData\Roaming\RetroArch\_magicbox
+
+// if the line below is present the Magic Box will show your heart rate on-screen
+showBpm
+
+// if the line below is present the Magic Box will show Sonic's speed and acceleration on-screen
+showValues
