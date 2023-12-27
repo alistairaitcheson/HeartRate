@@ -45,6 +45,14 @@ namespace HeartRate
         private readonly Queue<Font> _lastFonts = new();
         private IntPtr _oldIconHandle;
 
+        string sourceDataStr = "";
+        string pathToMagicBox = "";
+        // read these from the data!
+        int highHeartRate = 100;
+        int lowHeartRate = 50;
+        int highSonicSpeed = 0xEFFF;
+        int lowSonicSpeed = 0x0000;
+
         public HeartRateForm() : this(
             Environment.CommandLine.Contains("--test")
                 ? new TestHeartRateService()
@@ -260,10 +268,59 @@ namespace HeartRate
                     UpdateUICore();
                     Invalidate();
 
-                    // Here is where I put the Magic box stuff
-                    string pathToMagicBox = System.IO.File.ReadAllText("pathToMagicBox.txt").Trim();
-                    string fileName = "heart_" + new Random().Next(10000, 99999).ToString() + ".amb";
-                    System.IO.File.WriteAllText(pathToMagicBox + "\\recv\\" + fileName, bpm.ToString() + "H");
+                    try
+                    {
+                        sourceDataStr = System.IO.File.ReadAllText("monitorValues.txt").Trim();
+                        string[] lines = sourceDataStr.Split(new string[] { "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries);
+                        foreach (string line in lines)
+                        {
+                            if (line.StartsWith("pathToMagicBox:"))
+                            {
+                                pathToMagicBox = line.Substring("pathToMagicBox:".Length);
+                            }
+                            if (line.StartsWith("highHeartRate:"))
+                            {
+                                highHeartRate = int.Parse(line.Substring("highHeartRate:".Length));
+                            }
+                            if (line.StartsWith("lowHeartRate:"))
+                            {
+                                lowHeartRate = int.Parse(line.Substring("lowHeartRate:".Length));
+                            }
+                            if (line.StartsWith("highSonicSpeed:"))
+                            {
+                                highSonicSpeed = int.Parse(line.Substring("highSonicSpeed:".Length), System.Globalization.NumberStyles.HexNumber);
+                            }
+                            if (line.StartsWith("lowSonicSpeed:"))
+                            {
+                                lowSonicSpeed = int.Parse(line.Substring("lowSonicSpeed:".Length), System.Globalization.NumberStyles.HexNumber);
+                            }
+                        }
+
+                        System.Console.WriteLine(
+                            "highHeartRate: " + highHeartRate +
+                            ", lowHeartRate: " + lowHeartRate +
+                            ", highSonicSpeed: " + highSonicSpeed +
+                            ", lowSonicSpeed: " + lowSonicSpeed);
+                        System.Console.WriteLine(
+                            "bpm: " + bpm);
+                        float relativeRate = ((float)bpm - (float)lowHeartRate) / ((float)highHeartRate - (float)lowHeartRate);
+                        float sonicSpeed = ((1 - relativeRate) * lowSonicSpeed) + (relativeRate * highSonicSpeed);
+                        int intSonicSpeed = (int)Math.Floor(sonicSpeed);
+                        intSonicSpeed = Math.Max(0, intSonicSpeed);
+                        intSonicSpeed = Math.Min(0xEFFF, intSonicSpeed);
+
+                        // Here is where I put the Magic box stuff
+                        string fileName = "heart_" + new Random().Next(10000, 99999).ToString() + ".amb";
+                        System.IO.File.WriteAllText(pathToMagicBox + "\\recv\\" + fileName, bpm.ToString() + "H" + intSonicSpeed + "J");
+                        if (System.IO.File.Exists("errorLog.txt"))
+                        {
+                            System.IO.File.Delete("errorLog.txt");
+                        }
+                    } catch (Exception exception)
+                    {
+                        // do something error!
+                        System.IO.File.WriteAllText("errorLog.txt", exception.Message);
+                    }
                 }
             }));
         }
