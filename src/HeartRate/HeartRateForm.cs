@@ -57,6 +57,8 @@ namespace HeartRate
         bool shouldShowBpm = false;
         bool shouldShowValues = false;
 
+        Random randomGenerator = new Random();
+
         public HeartRateForm() : this(
             Environment.CommandLine.Contains("--test")
                 ? new TestHeartRateService()
@@ -346,13 +348,14 @@ namespace HeartRate
                         System.Console.WriteLine(
                                 "bpm: " + bpm + ", speed: " + intSonicSpeed.ToString("X") + ", accel: " + intSonicAccel.ToString("X") + ", showBPM: " + intShouldShowBpm + ", showVal: " + intShouldShowValues);
                         // Here is where I put the Magic box stuff
-                        string fileName = "heart_" + new Random().Next(10000, 99999).ToString() + ".amb";
-                        string message = bpm.ToString() + "H" + intSonicSpeed + "J" + intSonicAccel + "j";
-                        string secondFileName = "heart_" + new Random().Next(10000, 99999).ToString() + ".amb";
+                        string fileName = "heart_" + randomGenerator.Next(10000, 99999).ToString() + ".amb";
+                        string speedMessage = intSonicSpeed + "J";
+                        string bpmMessage = bpm.ToString() + "H";
+                        string accelMessage = intSonicAccel + "j";
+                        string secondFileName = "heart_" + randomGenerator.Next(10000, 99999).ToString() + ".amb";
                         string secondMessage = intShouldShowBpm + "K" + intShouldShowValues + "k";
-                        System.Console.WriteLine(message);
-                        System.Console.WriteLine(secondMessage);
-                        System.IO.File.WriteAllText(pathToMagicBox + "\\recv\\" + fileName, message);
+                        System.Console.WriteLine(speedMessage + " - " + bpmMessage + " - " + accelMessage + " - " + secondMessage);
+                        System.IO.File.WriteAllText(pathToMagicBox + "\\recv\\" + fileName, speedMessage + accelMessage + bpmMessage);
                         System.IO.File.WriteAllText(pathToMagicBox + "\\recv\\" + secondFileName, secondMessage);
                         if (System.IO.File.Exists("errorLog.txt"))
                         {
