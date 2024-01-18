@@ -2,30 +2,31 @@
 using System.IO;
 using System.Threading;
 
-namespace Lennox.HeartRate.Tests;
-
-internal sealed class TempFile : IDisposable
+namespace Lennox.HeartRate.Tests
 {
-    public string Filename => Volatile.Read(ref _filename);
-
-    private string _filename = Path.GetTempFileName();
-
-    public static implicit operator string(TempFile f)
+    internal sealed class TempFile : IDisposable
     {
-        return f.Filename;
-    }
+        public string Filename => Volatile.Read(ref _filename);
 
-    public void Dispose()
-    {
-        var filename = Interlocked.Exchange(ref _filename, null);
+        private string _filename = Path.GetTempFileName();
 
-        if (filename != null && File.Exists(filename))
+        public static implicit operator string(TempFile f)
         {
-            try
+            return f.Filename;
+        }
+
+        public void Dispose()
+        {
+            var filename = Interlocked.Exchange(ref _filename, null);
+
+            if (filename != null && File.Exists(filename))
             {
-                File.Delete(filename);
+                try
+                {
+                    File.Delete(filename);
+                }
+                catch (Exception) { }
             }
-            catch (Exception) { }
         }
     }
 }

@@ -341,6 +341,14 @@ namespace HeartRate
                         int intSonicAccel = (int)Math.Floor(sonicAccel);
                         intSonicAccel = Math.Max(0, intSonicAccel);
                         intSonicAccel = Math.Min(0xEFFF, intSonicAccel);
+                        if (intSonicAccel > highSonicAccel)
+                        {
+                            intSonicAccel = highSonicAccel;
+                        }
+                        if (intSonicAccel < lowSonicAccel)
+                        {
+                            intSonicAccel = lowSonicAccel;
+                        }
 
                         int intShouldShowBpm = shouldShowBpm ? 1 : 0;
                         int intShouldShowValues = shouldShowValues ? 1 : 0;
@@ -348,18 +356,21 @@ namespace HeartRate
                         System.Console.WriteLine(
                                 "bpm: " + bpm + ", speed: " + intSonicSpeed.ToString("X") + ", accel: " + intSonicAccel.ToString("X") + ", showBPM: " + intShouldShowBpm + ", showVal: " + intShouldShowValues);
                         // Here is where I put the Magic box stuff
-                        string fileName = "heart_" + randomGenerator.Next(10000, 99999).ToString() + ".amb";
-                        string speedMessage = intSonicSpeed + "J";
-                        string bpmMessage = bpm.ToString() + "H";
-                        string accelMessage = intSonicAccel + "j";
-                        string secondFileName = "heart_" + randomGenerator.Next(10000, 99999).ToString() + ".amb";
-                        string secondMessage = intShouldShowBpm + "K" + intShouldShowValues + "k";
-                        System.Console.WriteLine(speedMessage + " - " + bpmMessage + " - " + accelMessage + " - " + secondMessage);
-                        System.IO.File.WriteAllText(pathToMagicBox + "\\recv\\" + fileName, speedMessage + accelMessage + bpmMessage);
-                        System.IO.File.WriteAllText(pathToMagicBox + "\\recv\\" + secondFileName, secondMessage);
-                        if (System.IO.File.Exists("errorLog.txt"))
+                        if (bpm > 0 && intSonicSpeed > 0)
                         {
-                            System.IO.File.Delete("errorLog.txt");
+                            string fileName = "heart_" + randomGenerator.Next(10000, 99999).ToString() + ".amb";
+                            string speedMessage = intSonicSpeed + "J";
+                            string bpmMessage = bpm.ToString() + "H";
+                            string accelMessage = intSonicAccel + "j";
+                            string secondFileName = "heart_" + randomGenerator.Next(10000, 99999).ToString() + ".amb";
+                            string secondMessage = intShouldShowBpm + "K" + intShouldShowValues + "k";
+                            System.Console.WriteLine(speedMessage + " - " + bpmMessage + " - " + accelMessage + " - " + secondMessage);
+                            System.IO.File.WriteAllText(pathToMagicBox + "\\recv\\" + fileName, speedMessage + accelMessage + bpmMessage);
+                            System.IO.File.WriteAllText(pathToMagicBox + "\\recv\\" + secondFileName, secondMessage);
+                            if (System.IO.File.Exists("errorLog.txt"))
+                            {
+                                System.IO.File.Delete("errorLog.txt");
+                            }
                         }
                     } catch (Exception exception)
                     {

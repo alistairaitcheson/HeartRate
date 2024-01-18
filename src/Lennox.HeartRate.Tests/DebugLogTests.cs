@@ -2,21 +2,23 @@
 using HeartRate;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Lennox.HeartRate.Tests;
-
-[TestClass]
-public class DebugLogTests
+namespace Lennox.HeartRate.Tests
 {
-    [TestMethod]
-    public void TruncatingWorks()
+
+    [TestClass]
+    public class DebugLogTests
     {
-        var file = Path.Combine(Path.GetTempPath(), "TruncatingWorks.txt");
-
-        DebugLog.Initialize(file);
-
-        for (var i = 0; i < 1024 * 1024 / DebugLog.FormatLine("Testing").Length + 50; ++i)
+        [TestMethod]
+        public void TruncatingWorks()
         {
-            DebugLog.WriteLog("Testing");
+            var file = Path.Combine(Path.GetTempPath(), "TruncatingWorks.txt");
+
+            DebugLog.Initialize(file);
+
+            for (var i = 0; i < 1024 * 1024 / DebugLog.FormatLine("Testing").Length + 50; ++i)
+            {
+                DebugLog.WriteLog("Testing");
+            }
         }
     }
 }
